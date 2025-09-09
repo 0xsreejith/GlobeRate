@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../providers/currency_provider.dart';
-import '../services/currency_service.dart';
 
 class ConversionResultCard extends StatelessWidget {
   final CurrencyProvider provider;
@@ -11,89 +10,186 @@ class ConversionResultCard extends StatelessWidget {
     required this.provider,
   });
 
-  // Format number based on its value
-  String _formatNumber(double value) {
-    if (value >= 1) return value.toStringAsFixed(2);
-    if (value >= 0.01) return value.toStringAsFixed(4);
-    return value.toStringAsFixed(6);
+  String _formatCurrency(double value) {
+    if (value >= 1) {
+      return NumberFormat.currency(
+        decimalDigits: 2,
+        symbol: '',
+      ).format(value);
+    } else {
+      return value.toStringAsFixed(6);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isBaseUSD = provider.baseCurrency == 'USD';
     final rate = provider.rates[provider.targetCurrency] ?? 0;
     final inverseRate = rate != 0 ? 1 / rate : 0;
+    final lastUpdated = DateTime.now();
     
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Header with last updated time
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Conversion Result',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                  'CONVERSION RESULT',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    letterSpacing: 0.5,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.refresh, size: 20),
-                  onPressed: () => provider.fetchRates(),
-                  tooltip: 'Refresh rates',
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.access_time,
+                      size: 14,
+                      color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Updated ${DateFormat('HH:mm').format(lastUpdated)}',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            // Main conversion
+            const SizedBox(height: 16),
+            
+            // Amount and converted amount
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Base amount
                 Expanded(
-                  child: Text(
-                    '${_formatNumber(provider.amount)} ${provider.baseCurrency}',
-                    style: theme.textTheme.titleLarge,
-                    overflow: TextOverflow.ellipsis,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        provider.baseCurrency,
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _formatCurrency(provider.amount),
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Icon(Icons.arrow_forward, size: 20),
+                
+                // Conversion arrow
+                Padding(
+                  padding: const EdgeInsets.only(top: 12.0, left: 8, right: 8),
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.arrow_forward,
+                      size: 20,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
                 ),
+                
+                // Converted amount
                 Expanded(
-                  child: Text(
-                    '${_formatNumber(provider.convertedAmount)} ${provider.targetCurrency}',
-                    style: theme.textTheme.titleLarge,
-                    textAlign: TextAlign.end,
-                    overflow: TextOverflow.ellipsis,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        provider.targetCurrency,
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _formatCurrency(provider.convertedAmount),
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: theme.colorScheme.primary,
+                        ),
+                        textAlign: TextAlign.end,
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            // Rate display
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '1 ${provider.baseCurrency} = ${_formatNumber(rate.toDouble())} ${provider.targetCurrency}',
-                  style: theme.textTheme.bodySmall,
-                ),
-                Text(
-                  '1 ${provider.targetCurrency} = ${_formatNumber(inverseRate.toDouble())} ${provider.baseCurrency}',
-                  style: theme.textTheme.bodySmall,
-                ),
-              ],
+            
+            const SizedBox(height: 20),
+            
+            // Rate information
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  // Exchange rate
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '1 ${provider.baseCurrency}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      Text(
+                        '= ${_formatCurrency(rate.toDouble())} ${provider.targetCurrency}',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  // Inverse rate
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '1 ${provider.targetCurrency}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      Text(
+                        '= ${_formatCurrency(inverseRate.toDouble())} ${provider.baseCurrency}',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
         ),

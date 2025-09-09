@@ -4,7 +4,6 @@ import '../providers/currency_provider.dart';
 import '../widgets/currency_card.dart';
 import '../widgets/conversion_result_card.dart';
 import '../widgets/history_chart.dart';
-import '../services/currency_service.dart';
 
 class ConverterScreen extends StatefulWidget {
   const ConverterScreen({Key? key}) : super(key: key);
@@ -134,26 +133,32 @@ class _ConverterScreenState extends State<ConverterScreen> {
       BuildContext context, CurrencyProvider provider) {
     return Column(
       children: [
-        GestureDetector(
-          onTap: () {
-            _showCurrencyPicker(context, true, provider);
-          },
-          child: const CurrencyCard(isBaseCurrency: true),
+        // Base Currency Card
+        CurrencyCard(
+          isBaseCurrency: true,
+          isActive: true,
         ),
-        const SizedBox(height: 16),
-        IconButton(
-          onPressed: () {
-            provider.swapCurrencies();
-            _amountController.text = provider.amount.toString();
-          },
-          icon: const Icon(Icons.swap_vert),
+        
+        // Swap Button
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: IconButton.filledTonal(
+            onPressed: () {
+              provider.swapCurrencies();
+              _amountController.text = provider.amount.toString();
+            },
+            style: IconButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+              foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
+            ),
+            icon: const Icon(Icons.swap_vert_rounded, size: 28),
+          ),
         ),
-        const SizedBox(height: 16),
-        GestureDetector(
-          onTap: () {
-            _showCurrencyPicker(context, false, provider);
-          },
-          child: const CurrencyCard(isBaseCurrency: false),
+        
+        // Target Currency Card
+        CurrencyCard(
+          isBaseCurrency: false,
+          isActive: false,
         ),
       ],
     );
@@ -165,103 +170,39 @@ class _ConverterScreenState extends State<ConverterScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Base Currency Card
         Expanded(
-          child: GestureDetector(
-            onTap: () {
-              _showCurrencyPicker(context, true, provider);
-            },
-            child: const CurrencyCard(isBaseCurrency: true),
+          child: CurrencyCard(
+            isBaseCurrency: true,
+            isActive: true,
           ),
         ),
+        
+        // Swap Button
         Padding(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 16.0, vertical: 40),
-          child: FloatingActionButton.small(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 40),
+          child: IconButton.filledTonal(
             onPressed: () {
               provider.swapCurrencies();
               _amountController.text = provider.amount.toString();
             },
-            child: const Icon(Icons.swap_horiz),
+            style: IconButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+              foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
+            ),
+            icon: const Icon(Icons.swap_horiz_rounded, size: 28),
           ),
         ),
+        
+        // Target Currency Card
         Expanded(
-          child: GestureDetector(
-            onTap: () {
-              _showCurrencyPicker(context, false, provider);
-            },
-            child: const CurrencyCard(isBaseCurrency: false),
+          child: CurrencyCard(
+            isBaseCurrency: false,
+            isActive: false,
           ),
         ),
       ],
     );
   }
 
-  // 🔹 Currency Picker Dialog
-  void _showCurrencyPicker(
-      BuildContext context, bool isBase, CurrencyProvider provider) {
-    final currentCurrency = isBase ? provider.baseCurrency : provider.targetCurrency;
-    
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(16.0),
-        height: MediaQuery.of(context).size.height * 0.7,
-        child: Column(
-          children: [
-            Text(
-              isBase ? 'Select Base Currency' : 'Select Target Currency',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              decoration: InputDecoration(
-                hintText: 'Search currency...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              onChanged: (value) {
-                // Search functionality can be implemented here
-              },
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: Consumer<CurrencyProvider>(
-                builder: (context, provider, _) {
-                  final currencies = CurrencyService.availableCurrencies;
-                  return ListView.builder(
-                    itemCount: currencies.length,
-                    itemBuilder: (context, index) {
-                      final currency = currencies[index];
-                      final isSelected = currency == currentCurrency;
-                      
-                      return ListTile(
-                        title: Text(currency),
-                        trailing: isSelected 
-                            ? const Icon(Icons.check_circle, color: Colors.green)
-                            : null,
-                        onTap: () {
-                          if (isBase) {
-                            provider.baseCurrency = currency;
-                          } else {
-                            provider.targetCurrency = currency;
-                          }
-                          Navigator.pop(context);
-                        },
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

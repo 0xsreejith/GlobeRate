@@ -29,51 +29,85 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF4E54C8),
+          seedColor: const Color(0xFF6366F1),
           brightness: Brightness.light,
-          primary: const Color(0xFF4E54C8),
-          secondary: const Color(0xFF8F94FB),
+          primary: const Color(0xFF6366F1),
+          secondary: const Color(0xFF818CF8),
+          surface: Colors.white,
+          background: const Color(0xFFF8FAFC),
+          onBackground: const Color(0xFF1E293B),
+        ).copyWith(
+          primaryContainer: const Color(0xFFFFFFFF),
+          secondaryContainer: const Color(0xFFF1F5F9),
         ),
+        scaffoldBackgroundColor: const Color(0xFFF8FAFC),
         appBarTheme: const AppBarTheme(
           elevation: 0,
           centerTitle: true,
           backgroundColor: Colors.transparent,
-          foregroundColor: Colors.black87,
+          surfaceTintColor: Colors.transparent,
           titleTextStyle: TextStyle(
-            color: Colors.black87,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF0F172A),
+            letterSpacing: -0.3,
+          ),
+          iconTheme: IconThemeData(
+            color: Color(0xFF64748B),
+            size: 24,
           ),
         ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: Colors.grey[100],
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
+        cardTheme: CardThemeData(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: Colors.grey.shade200, width: 1),
           ),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 16,
-          ),
+          color: Colors.white,
+          margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          clipBehavior: Clip.antiAlias,
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF4E54C8),
+            backgroundColor: const Color(0xFF6366F1),
             foregroundColor: Colors.white,
             elevation: 0,
             padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
+            textStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
+            ),
           ),
         ),
-        cardTheme: CardThemeData(
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.white,
+          hintStyle: TextStyle(color: Colors.grey.shade500),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
           ),
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.grey.shade300, width: 1.5),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFF6366F1), width: 2),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.red, width: 1.5),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.red, width: 2),
+          ),
         ),
       ),
       home: const MainScreen(),
