@@ -4,6 +4,7 @@ import '../providers/currency_provider.dart';
 import '../widgets/currency_card.dart';
 import '../widgets/conversion_result_card.dart';
 import '../widgets/history_chart.dart';
+import 'favorites_screen.dart';
 
 class ConverterScreen extends StatefulWidget {
   const ConverterScreen({Key? key}) : super(key: key);
@@ -37,6 +38,13 @@ class _ConverterScreenState extends State<ConverterScreen> {
     super.dispose();
   }
 
+  void _navigateToFavorites() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const FavoritesScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -49,6 +57,12 @@ class _ConverterScreenState extends State<ConverterScreen> {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.star),
+            onPressed: _navigateToFavorites,
+            tooltip: 'View Favorites',
+          ),
+          const SizedBox(width: 8),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
@@ -133,10 +147,11 @@ class _ConverterScreenState extends State<ConverterScreen> {
       BuildContext context, CurrencyProvider provider) {
     return Column(
       children: [
-        // Base Currency Card
+        // Base Currency Card with Favorite Toggle
         CurrencyCard(
           isBaseCurrency: true,
           isActive: true,
+          showFavoriteButton: true,
         ),
         
         // Swap Button

@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/currency_service.dart';
+import '../models/favorite_pair.dart';
 
 class CurrencyProvider with ChangeNotifier {
   String _baseCurrency = 'USD';
@@ -10,8 +12,9 @@ class CurrencyProvider with ChangeNotifier {
   bool _isLoading = false;
   Map<String, double> _rates = {};
   Map<DateTime, double> _historicalRates = {};
-  List<String> _favorites = [];
+  List<FavoritePair> _favoritePairs = [];
   final SharedPreferences _prefs;
+  static const String _favoritesKey = 'favorite_currency_pairs';
 
   CurrencyProvider(this._prefs) {
     _loadFavorites();
@@ -26,7 +29,7 @@ class CurrencyProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   Map<String, double> get rates => _rates;
   Map<DateTime, double> get historicalRates => _historicalRates;
-  List<String> get favorites => _favorites;
+  List<FavoritePair> get favoritePairs => List.unmodifiable(_favoritePairs);
 
   // Setters
   set baseCurrency(String value) {
@@ -56,25 +59,98 @@ class CurrencyProvider with ChangeNotifier {
 
   // Load favorites from SharedPreferences
   Future<void> _loadFavorites() async {
-    _favorites = _prefs.getStringList('favorites') ?? [];
+    final favoritesJson = _prefs.getStringList(_favoritesKey) ?? [];
+    _favoritePairs = favoritesJson
+        .map((json) => FavoritePair.fromJson(jsonDecode(json)))
+        .toList();
+    _sortFavorites();
     notifyListeners();
+  }
+
+  // Save favorites to SharedPreferences
+  Future<void> _saveFavorites() async {
+    final favoritesJson = _favoritePairs
+        .map((pair) => jsonEncode(pair.toJson()))
+        .toList();
+    await _prefs.setStringList(_favoritesKey, favoritesJson);
+  }
+
+  // Sort favorites by sortOrder
+  void _sortFavorites() {
+    _favoritePairs.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
   }
 
   // Toggle favorite status of current currency pair
   Future<void> toggleFavorite() async {
-    final pair = '$_baseCurrency-$_targetCurrency';
-    if (_favorites.contains(pair)) {
-      _favorites.remove(pair);
+    final existingIndex = _favoritePairs.indexWhere((pair) => 
+      pair.baseCurrency == _baseCurrency && 
+      pair.targetCurrency == _targetCurrency);
+    
+    if (existingIndex >= 0) {
+      await removeFromFavorites(_favoritePairs[existingIndex].id);
     } else {
-      _favorites.add(pair);
+      await addToFavorites();
     }
-    await _prefs.setStringList('favorites', _favorites);
+    notifyListeners();  // Add this to ensure UI updates
+  }
+
+  // Add current currency pair to favorites
+  Future<void> addToFavorites() async {
+    final newPair = FavoritePair(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      baseCurrency: _baseCurrency,
+      targetCurrency: _targetCurrency,
+      createdAt: DateTime.now(),
+      sortOrder: _favoritePairs.length,
+    );
+    
+    if (!_favoritePairs.any((pair) => 
+        pair.baseCurrency == _baseCurrency && 
+        pair.targetCurrency == _targetCurrency)) {
+      _favoritePairs.add(newPair);
+      await _saveFavorites();
+      notifyListeners();
+    }
+  }
+
+  // Remove currency pair from favorites
+  Future<void> removeFromFavorites(String id) async {
+    _favoritePairs.removeWhere((pair) => pair.id == id);
+    await _saveFavorites();
     notifyListeners();
   }
 
   // Check if current pair is in favorites
-  bool isFavorite() {
-    return _favorites.contains('$_baseCurrency-$_targetCurrency');
+  bool get isFavorite {
+    return _favoritePairs.any((pair) => 
+        pair.baseCurrency == _baseCurrency && 
+        pair.targetCurrency == _targetCurrency);
+  }
+  
+  // Reorder favorites
+  Future<void> reorderFavorites(int oldIndex, int newIndex) async {
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
+    }
+    final FavoritePair pair = _favoritePairs.removeAt(oldIndex);
+    _favoritePairs.insert(newIndex, pair);
+    
+    // Update sortOrder for all items
+    for (int i = 0; i < _favoritePairs.length; i++) {
+      _favoritePairs[i] = _favoritePairs[i].copyWith(sortOrder: i);
+    }
+    
+    await _saveFavorites();
+    notifyListeners();
+  }
+  
+  // Load a favorite pair
+  Future<void> loadFavoritePair(FavoritePair pair) async {
+    _baseCurrency = pair.baseCurrency;
+    _targetCurrency = pair.targetCurrency;
+    await fetchRates();
+    fetchRates();
+    notifyListeners();
   }
 
   // Swap base and target currencies

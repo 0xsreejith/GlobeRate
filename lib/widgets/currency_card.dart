@@ -7,11 +7,13 @@ import '../services/currency_service.dart';
 class CurrencyCard extends StatelessWidget {
   final bool isBaseCurrency;
   final bool isActive;
+  final bool showFavoriteButton;
 
   const CurrencyCard({
     Key? key,
     required this.isBaseCurrency,
     this.isActive = false,
+    this.showFavoriteButton = false,
   }) : super(key: key);
 
   @override
@@ -32,100 +34,126 @@ class CurrencyCard extends StatelessWidget {
           decimalDigits: 2,
         );
 
-        return Container(
-          margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-          decoration: BoxDecoration(
-            color: isActive ? theme.colorScheme.primary.withOpacity(0.05) : theme.cardColor,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isActive 
-                  ? theme.colorScheme.primary.withOpacity(0.3) 
-                  : theme.dividerColor.withOpacity(0.5),
-              width: 1.5,
-            ),
-            boxShadow: [
-              if (isActive)
-                BoxShadow(
-                  color: theme.colorScheme.primary.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+        return Stack(
+          children: [
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              decoration: BoxDecoration(
+                color: isActive ? theme.colorScheme.primary.withOpacity(0.05) : theme.cardColor,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isActive 
+                      ? theme.colorScheme.primary.withOpacity(0.3) 
+                      : theme.dividerColor.withOpacity(0.5),
+                  width: 1.5,
                 ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            borderRadius: BorderRadius.circular(16),
-            child: InkWell(
-              onTap: () => _showCurrencyPicker(context, isBaseCurrency, provider),
-              borderRadius: BorderRadius.circular(16),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    // Flag and Currency Code
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            _getFlagEmoji(currencyCode),
-                            style: const TextStyle(fontSize: 24),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            currencyCode,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: theme.colorScheme.onSurface,
-                            ),
-                          ),
-                        ],
-                      ),
+                boxShadow: [
+                  if (isActive)
+                    BoxShadow(
+                      color: theme.colorScheme.primary.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
                     ),
-                    
-                    const Spacer(),
-                    
-                    // Currency Name and Amount
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                ],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(16),
+                child: InkWell(
+                  onTap: () => _showCurrencyPicker(context, isBaseCurrency, provider),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
                       children: [
-                        Text(
-                          currencyName,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface.withOpacity(0.7),
-                            fontWeight: FontWeight.w500,
+                        // Flag and Currency Code
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                _getFlagEmoji(currencyCode),
+                                style: const TextStyle(fontSize: 24),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                currencyCode,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          formatter.format(amount),
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: theme.colorScheme.onSurface,
-                            letterSpacing: -0.5,
-                          ),
+                        
+                        const Spacer(),
+                        
+                        // Currency Name and Amount
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              currencyName,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurface.withOpacity(0.7),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              formatter.format(amount),
+                              style: theme.textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: theme.colorScheme.onSurface,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                        
+                        const SizedBox(width: 8),
+                        
+                        // Dropdown Icon
+                        Icon(
+                          Icons.arrow_drop_down_rounded,
+                          size: 28,
+                          color: theme.colorScheme.onSurface.withOpacity(0.5),
                         ),
                       ],
                     ),
-                    
-                    const SizedBox(width: 8),
-                    
-                    // Dropdown Icon
-                    Icon(
-                      Icons.arrow_drop_down_rounded,
-                      size: 28,
-                      color: theme.colorScheme.onSurface.withOpacity(0.5),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
+            if (showFavoriteButton && isBaseCurrency)
+              Positioned(
+                top: 8,
+                right: 24,
+                child: Consumer<CurrencyProvider>(
+                  builder: (context, provider, _) {
+                    return IconButton(
+                      icon: Icon(
+                        provider.isFavorite ? Icons.star : Icons.star_border,
+                        color: provider.isFavorite 
+                            ? theme.colorScheme.secondary 
+                            : theme.iconTheme.color?.withOpacity(0.7),
+                        size: 28,
+                      ),
+                      onPressed: () => provider.toggleFavorite(),
+                      tooltip: provider.isFavorite 
+                          ? 'Remove from favorites' 
+                          : 'Add to favorites',
+                    );
+                  },
+                ),
+              ),
+          ],
         );
       },
     );
